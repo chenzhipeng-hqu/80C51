@@ -1,0 +1,521 @@
+C51 COMPILER V9.54   QEPN                                                                  02/25/2018 00:49:26 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE QEPN
+OBJECT MODULE PLACED IN .\Objects\qepn.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE ..\qpn\src\qfn\qepn.c OPTIMIZE(8,SPEED) BROWSE INCDIR(Y:\c51\qpn\include
+                    -;Y:\c51\C51_lib) DEBUG OBJECTEXTEND PRINT(.\Listings\qepn.lst) TABS(2) OBJECT(.\Objects\qepn.obj)
+
+line level    source
+
+   1          /**
+   2          * @file
+   3          * @brief QEP-nano implementation.
+   4          * @ingroup qep
+   5          * @cond
+   6          ******************************************************************************
+   7          * Last updated for version 6.1.1
+   8          * Last updated on  2018-02-18
+   9          *
+  10          *                    Q u a n t u m     L e a P s
+  11          *                    ---------------------------
+  12          *                    innovating embedded systems
+  13          *
+  14          * Copyright (C) Quantum Leaps, LLC. All rights reserved.
+  15          *
+  16          * This program is open source software: you can redistribute it and/or
+  17          * modify it under the terms of the GNU General Public License as published
+  18          * by the Free Software Foundation, either version 3 of the License, or
+  19          * (at your option) any later version.
+  20          *
+  21          * Alternatively, this program may be distributed and modified under the
+  22          * terms of Quantum Leaps commercial licenses, which expressly supersede
+  23          * the GNU General Public License and are specifically designed for
+  24          * licensees interested in retaining the proprietary status of their code.
+  25          *
+  26          * This program is distributed in the hope that it will be useful,
+  27          * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  28          * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  29          * GNU General Public License for more details.
+  30          *
+  31          * You should have received a copy of the GNU General Public License
+  32          * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  33          *
+  34          * Contact information:
+  35          * https://www.state-machine.com
+  36          * mailto:info@state-machine.com
+  37          ******************************************************************************
+  38          * @endcond
+  39          */
+  40          #include "qpn_conf.h" /* QP-nano configuration file (from the application) */
+  41          #include "qfn_port.h" /* QF-nano port from the port directory */
+  42          #include "qassert.h"  /* embedded systems-friendly assertions */
+  43          
+  44          Q_DEFINE_THIS_MODULE("qepn")
+  45          
+  46          /****************************************************************************/
+  47          char_t const Q_ROM QP_versionStr[6] = QP_VERSION_STR;
+  48          
+  49          /****************************************************************************/
+  50          /****************************************************************************/
+  51          /*! empty signal for internal use only */
+  52          #define QEP_EMPTY_SIG_        ((QSignal)0)
+  53          
+  54          /*! maximum depth of state nesting in HSMs (including the top level),
+C51 COMPILER V9.54   QEPN                                                                  02/25/2018 00:49:26 PAGE 2   
+
+  55          * must be >= 2
+  56          */
+  57          #define QHSM_MAX_NEST_DEPTH_  ((int_fast8_t)5)
+  58          
+  59          /*! helper function to execute a transition chain in HSM */
+  60          static int_fast8_t QHsm_tran_(QHsm * const me,
+  61                                        QStateHandler path[QHSM_MAX_NEST_DEPTH_]);
+  62          
+  63          /****************************************************************************/
+  64          /**
+  65          * @description
+  66          * Performs the first step of HSM initialization by assigning the initial
+  67          * pseudostate to the currently active state of the state machine.
+  68          *
+  69          * @param[in,out] me      pointer (see @ref oop)
+  70          * @param[in]     initial pointer to the top-most initial state-handler
+  71          *                        function in the derived state machine
+  72          * @note
+  73          * Must be called only by the constructors of the derived state machines.
+  74          *
+  75          * @note
+  76          * Must be called only ONCE before QHSM_INIT().
+  77          *
+  78          * @usage
+  79          * The following example illustrates how to invoke QHsm_ctor() in the
+  80          * "constructor" of a derived state machine:
+  81          * @include qepn_qhsm_ctor.c
+  82          */
+  83          void QHsm_ctor(QHsm * const me, QStateHandler initial) {
+  84   1          static QHsmVtbl const vtbl = { /* QHsm virtual table */
+  85   1              &QHsm_init_,
+  86   1              &QHsm_dispatch_
+  87   1          };
+  88   1          me->vptr  = &vtbl;
+  89   1          me->state = Q_STATE_CAST(&QHsm_top);
+  90   1          me->temp  = initial;
+  91   1      }
+  92          
+  93          /****************************************************************************/
+  94          /**
+  95          * @description
+  96          * Executes the top-most initial transition in a HSM.
+  97          *
+  98          * @param[in,out] me pointer (see @ref oop)
+  99          *
+ 100          * @note
+ 101          * Must be called only ONCE after the QHsm_ctor().
+ 102          */
+ 103          void QHsm_init_(QHsm * const me) {
+ 104   1          QStateHandler t = me->state;
+ 105   1          QState r;
+ 106   1      
+ 107   1          /** @pre the virtual pointer must be initialized, the top-most initial
+ 108   1          * transition must be initialized, and the initial transition must not
+ 109   1          * be taken yet.
+ 110   1          */
+ 111   1          Q_REQUIRE_ID(200, (me->vptr != (QHsmVtbl const *)0)
+ 113   1                            && (me->temp != Q_STATE_CAST(0))
+ 113   1                            && (t == Q_STATE_CAST(&QHsm_top)));
+*** WARNING C275 IN LINE 113 OF ..\qpn\src\qfn\qepn.c: expression with possibly no effect
+ 114   1      
+ 115   1          r = (*me->temp)(me); /* execute the top-most initial transition */
+C51 COMPILER V9.54   QEPN                                                                  02/25/2018 00:49:26 PAGE 3   
+
+ 116   1      
+ 117   1          /* the top-most initial transition must be taken */
+ 118   1          Q_ASSERT_ID(210, r == (QState)Q_RET_TRAN);
+*** WARNING C275 IN LINE 118 OF ..\qpn\src\qfn\qepn.c: expression with possibly no effect
+ 119   1      
+ 120   1          /* drill down into the state hierarchy with initial transitions... */
+ 121   1          do {
+ 122   2              QStateHandler path[QHSM_MAX_NEST_DEPTH_];
+ 123   2              int_fast8_t ip = (int_fast8_t)0; /* transition entry path index */
+ 124   2      
+ 125   2              path[0] = me->temp;
+ 126   2              Q_SIG(me) = (QSignal)QEP_EMPTY_SIG_;
+ 127   2              (void)(*me->temp)(me);
+ 128   2              while (me->temp != t) {
+ 129   3                  ++ip;
+ 130   3                  Q_ASSERT_ID(220, ip < (int_fast8_t)Q_DIM(path));
+*** WARNING C275 IN LINE 130 OF ..\qpn\src\qfn\qepn.c: expression with possibly no effect
+ 131   3                  path[ip] = me->temp;
+ 132   3                  (void)(*me->temp)(me);
+ 133   3              }
+ 134   2              me->temp = path[0];
+ 135   2      
+ 136   2              /* retrace the entry path in reverse (desired) order... */
+ 137   2              Q_SIG(me) = (QSignal)Q_ENTRY_SIG;
+ 138   2              do {
+ 139   3                  (void)(*path[ip])(me); /* enter path[ip] */
+ 140   3                  --ip;
+ 141   3              } while (ip >= (int_fast8_t)0);
+ 142   2      
+ 143   2              t = path[0]; /* current state becomes the new source */
+ 144   2      
+ 145   2              Q_SIG(me) = (QSignal)Q_INIT_SIG;
+ 146   2              r = (*t)(me);
+ 147   2          } while (r == (QState)Q_RET_TRAN);
+ 148   1      
+ 149   1          me->state = t; /* change the current active state */
+ 150   1          me->temp  = t; /* mark the configuration as stable */
+ 151   1      }
+ 152          
+ 153          /****************************************************************************/
+ 154          /**
+ 155          * @description
+ 156          * QHsm_top() is the ultimate root of state hierarchy in all HSMs derived
+ 157          * from ::QHsm.
+ 158          *
+ 159          * @param[in] me pointer (see @ref oop)
+ 160          *
+ 161          * @returns
+ 162          * Always returns #Q_RET_IGNORED, which means that the top state ignores
+ 163          * all events.
+ 164          *
+ 165          * @note
+ 166          * The parameter @p me to this state handler is not used. It is provided for
+ 167          * conformance with the state-handler function signature ::QStateHandler.
+ 168          */
+ 169          QState QHsm_top(void const * const me) {
+ 170   1          (void)me; /* suppress the "unused parameter" compiler warning */
+*** WARNING C275 IN LINE 170 OF ..\qpn\src\qfn\qepn.c: expression with possibly no effect
+ 171   1          return (QState)Q_RET_IGNORED; /* the top state ignores all events */
+ 172   1      }
+ 173          
+ 174          /****************************************************************************/
+C51 COMPILER V9.54   QEPN                                                                  02/25/2018 00:49:26 PAGE 4   
+
+ 175          /**
+ 176          * @description
+ 177          * Dispatches an event for processing to a hierarchical state machine (HSM).
+ 178          * The processing of an event represents one run-to-completion (RTC) step.
+ 179          *
+ 180          * @param[in,out] me pointer (see @ref oop)
+ 181          *
+ 182          * @note
+ 183          * This function should be called only via the virtual table (see
+ 184          * QHSM_DISPATCH()) and should NOT be called directly in the applications.
+ 185          */
+ 186          void QHsm_dispatch_(QHsm * const me) {
+ 187   1          QStateHandler t = me->state;
+ 188   1          QStateHandler s;
+ 189   1          QState r;
+ 190   1          int_fast8_t iq; /* helper transition entry path index */
+ 191   1      
+ 192   1          /** @pre the current state must be initialized and
+ 193   1          * the state configuration must be stable
+ 194   1          */
+ 195   1          Q_REQUIRE_ID(400, (t != Q_STATE_CAST(0))
+ 196   1                            && (t == me->temp));
+*** WARNING C275 IN LINE 196 OF ..\qpn\src\qfn\qepn.c: expression with possibly no effect
+ 197   1      
+ 198   1          /* process the event hierarchically... */
+ 199   1          do {
+ 200   2              s = me->temp;
+ 201   2              r = (*s)(me); /* invoke state handler s */
+ 202   2      
+ 203   2              if (r == (QState)Q_RET_UNHANDLED) { /* unhandled due to a guard? */
+ 204   3                  iq = (int_fast8_t)Q_SIG(me); /* save the original signal */
+ 205   3                  Q_SIG(me) = (QSignal)QEP_EMPTY_SIG_; /* find the superstate */
+ 206   3                  r = (*s)(me); /* invoke state handler s */
+ 207   3                  Q_SIG(me) = (QSignal)iq; /* restore the original signal */
+ 208   3              }
+ 209   2          } while (r == (QState)Q_RET_SUPER);
+ 210   1      
+ 211   1          /* transition taken? */
+ 212   1          if (r >= (QState)Q_RET_TRAN) {
+ 213   2              QStateHandler path[QHSM_MAX_NEST_DEPTH_]; /* transition entry path */
+ 214   2              int_fast8_t ip; /* transition entry path index */
+ 215   2      
+ 216   2              path[0] = me->temp; /* save the target of the transition */
+ 217   2              path[1] = t;
+ 218   2              path[2] = s;
+ 219   2      
+ 220   2              /* exit current state to transition source s... */
+ 221   2              for (; t != s; t = me->temp) {
+ 222   3                  Q_SIG(me) = (QSignal)Q_EXIT_SIG; /* find superstate of t */
+ 223   3      
+ 224   3                  /* take the exit action and check if it was handled? */
+ 225   3                  if ((*t)(me) == (QState)Q_RET_HANDLED) {
+ 226   4                      Q_SIG(me) = (QSignal)QEP_EMPTY_SIG_;
+ 227   4                      (void)(*t)(me); /* find superstate of t */
+ 228   4                  }
+ 229   3              }
+ 230   2      
+ 231   2              ip = QHsm_tran_(me, path); /* take the state transition */
+ 232   2      
+ 233   2              /* retrace the entry path in reverse (desired) order... */
+ 234   2              Q_SIG(me) = (QSignal)Q_ENTRY_SIG;
+ 235   2              for (; ip >= (int_fast8_t)0; --ip) {
+C51 COMPILER V9.54   QEPN                                                                  02/25/2018 00:49:26 PAGE 5   
+
+ 236   3                  (void)(*path[ip])(me); /* enter path[ip] */
+ 237   3              }
+ 238   2              t = path[0];      /* stick the target into register */
+ 239   2              me->temp = t; /* update the current state */
+ 240   2      
+ 241   2              /* drill into the target hierarchy... */
+ 242   2              Q_SIG(me) = (QSignal)Q_INIT_SIG;
+ 243   2              while ((*t)(me) == (QState)Q_RET_TRAN) {
+ 244   3                  ip = (int_fast8_t)0;
+ 245   3      
+ 246   3                  path[0] = me->temp;
+ 247   3                  Q_SIG(me) = (QSignal)QEP_EMPTY_SIG_;
+ 248   3                  (void)(*me->temp)(me); /* find the superstate */
+ 249   3                  while (me->temp != t) {
+ 250   4                      ++ip;
+ 251   4                      path[ip] = me->temp;
+ 252   4                      (void)(*me->temp)(me); /* find the superstate */
+ 253   4                  }
+ 254   3                  me->temp = path[0];
+ 255   3      
+ 256   3                  /* entry path must not overflow */
+ 257   3                  Q_ASSERT_ID(410, ip < QHSM_MAX_NEST_DEPTH_);
+*** WARNING C275 IN LINE 257 OF ..\qpn\src\qfn\qepn.c: expression with possibly no effect
+ 258   3      
+ 259   3                  /* retrace the entry path in reverse (correct) order... */
+ 260   3                  Q_SIG(me) = (QSignal)Q_ENTRY_SIG;
+ 261   3                  do {
+ 262   4                      (void)(*path[ip])(me); /* enter path[ip] */
+ 263   4                      --ip;
+ 264   4                  } while (ip >= (int_fast8_t)0);
+ 265   3      
+ 266   3                  t = path[0];
+ 267   3                  Q_SIG(me) = (QSignal)Q_INIT_SIG;
+ 268   3              }
+ 269   2          }
+ 270   1      
+ 271   1          me->state = t; /* change the current active state */
+ 272   1          me->temp  = t; /* mark the configuration as stable */
+ 273   1      }
+ 274          
+ 275          /****************************************************************************/
+ 276          /**
+ 277          * @description
+ 278          * Static helper function to execute transition sequence in a hierarchical
+ 279          * state machine (HSM).
+ 280          *
+ 281          * @param[in,out] me   pointer (see @ref oop)
+ 282          * @param[in,out] path array of pointers to state-handler functions
+ 283          *                     to execute the entry actions
+ 284          * @returns
+ 285          * the depth of the entry path stored in the @p path parameter.
+ 286          */
+ 287          static int_fast8_t QHsm_tran_(QHsm * const me,
+ 288                                        QStateHandler path[QHSM_MAX_NEST_DEPTH_])
+ 289          {
+ 290   1          int_fast8_t ip = (int_fast8_t)(-1); /* transition entry path index */
+ 291   1          int_fast8_t iq; /* helper transition entry path index */
+ 292   1          QStateHandler t = path[0];
+ 293   1          QStateHandler s = path[2];
+ 294   1          QState r;
+ 295   1      
+ 296   1          /* (a) check source==target (transition to self) */
+C51 COMPILER V9.54   QEPN                                                                  02/25/2018 00:49:26 PAGE 6   
+
+ 297   1          if (s == t) {
+ 298   2              Q_SIG(me) = (QSignal)Q_EXIT_SIG;
+ 299   2              (void)(*s)(me);      /* exit the source */
+ 300   2              ip = (int_fast8_t)0; /* enter the target */
+ 301   2          }
+ 302   1          else {
+ 303   2              Q_SIG(me) = (QSignal)QEP_EMPTY_SIG_;
+ 304   2              (void)(*t)(me); /* find superstate of target */
+ 305   2              t = me->temp;
+ 306   2      
+ 307   2              /* (b) check source==target->super */
+ 308   2              if (s == t) {
+ 309   3                  ip = (int_fast8_t)0; /* enter the target */
+ 310   3              }
+ 311   2              else {
+ 312   3                  Q_SIG(me) = (QSignal)QEP_EMPTY_SIG_;
+ 313   3                  (void)(*s)(me); /* find superstate of source */
+ 314   3      
+ 315   3                  /* (c) check source->super==target->super */
+ 316   3                  if (me->temp == t) {
+ 317   4                      Q_SIG(me) = (QSignal)Q_EXIT_SIG;
+ 318   4                      (void)(*s)(me);     /* exit the source */
+ 319   4                      ip = (int_fast8_t)0; /* enter the target */
+ 320   4                  }
+ 321   3                  else {
+ 322   4                      /* (d) check source->super==target */
+ 323   4                      if (me->temp == path[0]) {
+ 324   5                          Q_SIG(me) = (QSignal)Q_EXIT_SIG;
+ 325   5                          (void)(*s)(me); /* exit the source */
+ 326   5                      }
+ 327   4                      else {
+ 328   5                          /* (e) check rest of source==target->super->super..
+ 329   5                          * and store the entry path along the way
+ 330   5                          */
+ 331   5                          iq = (int_fast8_t)0; /* indicate that LCA not found */
+ 332   5                          ip = (int_fast8_t)1; /* enter target and its superstate */
+ 333   5                          path[1] = t; /* save the superstate of target */
+ 334   5                          t = me->temp; /* save source->super */
+ 335   5      
+ 336   5                          /* find target->super->super... */
+ 337   5                          Q_SIG(me) = (QSignal)QEP_EMPTY_SIG_;
+ 338   5                          r = (*path[1])(me);
+ 339   5                          while (r == (QState)Q_RET_SUPER) {
+ 340   6                              ++ip;
+ 341   6                              path[ip] = me->temp; /* store the entry path */
+ 342   6                              if (me->temp == s) { /* is it the source? */
+ 343   7                                  iq = (int_fast8_t)1; /* indicate that LCA found */
+ 344   7      
+ 345   7                                  /* entry path must not overflow */
+ 346   7                                  Q_ASSERT_ID(510, ip < QHSM_MAX_NEST_DEPTH_);
+*** WARNING C275 IN LINE 346 OF ..\qpn\src\qfn\qepn.c: expression with possibly no effect
+ 347   7                                  --ip; /* do not enter the source */
+ 348   7                                  r = (QState)Q_RET_HANDLED; /* terminate loop */
+ 349   7                              }
+ 350   6                              /* it is not the source, keep going up */
+ 351   6                              else {
+ 352   7                                  r = (*me->temp)(me); /* superstate of t */
+ 353   7                              }
+ 354   6                          }
+ 355   5      
+ 356   5                          /* the LCA not found yet? */
+ 357   5                          if (iq == (int_fast8_t)0) {
+C51 COMPILER V9.54   QEPN                                                                  02/25/2018 00:49:26 PAGE 7   
+
+ 358   6      
+ 359   6                              /* entry path must not overflow */
+ 360   6                              Q_ASSERT_ID(520, ip < QHSM_MAX_NEST_DEPTH_);
+*** WARNING C275 IN LINE 360 OF ..\qpn\src\qfn\qepn.c: expression with possibly no effect
+ 361   6      
+ 362   6                              Q_SIG(me) = (QSignal)Q_EXIT_SIG;
+ 363   6                              (void)(*s)(me); /* exit the source */
+ 364   6      
+ 365   6                              /* (f) check the rest of source->super
+ 366   6                              *                  == target->super->super...
+ 367   6                              */
+ 368   6                              iq = ip;
+ 369   6                              r = (QState)Q_RET_IGNORED; /* LCA NOT found */
+ 370   6                              do {
+ 371   7                                  if (t == path[iq]) { /* is this the LCA? */
+ 372   8                                      r = (QState)Q_RET_HANDLED; /* LCA found */
+ 373   8      
+ 374   8                                      /* do not enter LCA */
+ 375   8                                      ip = (int_fast8_t)(iq - (int_fast8_t)1);
+ 376   8                                      iq = (int_fast8_t)(-1); /* terminate loop */
+ 377   8                                  }
+ 378   7                                  else {
+ 379   8                                      --iq; /* try lower superstate of target */
+ 380   8                                  }
+ 381   7                              } while (iq >= (int_fast8_t)0);
+ 382   6      
+ 383   6                              /* LCA not found? */
+ 384   6                              if (r != (QState)Q_RET_HANDLED) {
+ 385   7                                  /* (g) check each source->super->...
+ 386   7                                  * for each target->super...
+ 387   7                                  */
+ 388   7                                  r = (QState)Q_RET_IGNORED; /* keep looping */
+ 389   7                                  do {
+ 390   8                                      /* exit t unhandled? */
+ 391   8                                      Q_SIG(me) = (QSignal)Q_EXIT_SIG;
+ 392   8                                      if ((*t)(me) == (QState)Q_RET_HANDLED) {
+ 393   9                                          Q_SIG(me) = (QSignal)QEP_EMPTY_SIG_;
+ 394   9                                          (void)(*t)(me); /* find super of t */
+ 395   9                                      }
+ 396   8                                      t = me->temp; /* set to super of t */
+ 397   8                                      iq = ip;
+ 398   8                                      do {
+ 399   9                                          /* is this LCA? */
+ 400   9                                          if (t == path[iq]) {
+ 401  10                                              /* do not enter LCA */
+ 402  10                                              ip = (int_fast8_t)(iq-(int_fast8_t)1);
+ 403  10                                              /* cause breaking out of inner loop */
+ 404  10                                              iq = (int_fast8_t)(-1);
+ 405  10                                              r = (QState)Q_RET_HANDLED; /* break */
+ 406  10                                          }
+ 407   9                                          else {
+ 408  10                                              --iq;
+ 409  10                                          }
+ 410   9                                      } while (iq >= (int_fast8_t)0);
+ 411   8                                  } while (r != (QState)Q_RET_HANDLED);
+ 412   7                              }
+ 413   6                          }
+ 414   5                      }
+ 415   4                  }
+ 416   3              }
+ 417   2          }
+ 418   1          return ip;
+C51 COMPILER V9.54   QEPN                                                                  02/25/2018 00:49:26 PAGE 8   
+
+ 419   1      }
+ 420          
+ 421          /****************************************************************************/
+ 422          /**
+ 423          * @description
+ 424          * Finds the child state of the given @c parent, such that this child state
+ 425          * is an ancestor of the currently active state. The main purpose of this
+ 426          * function is to support **shallow history** transitions in state machines
+ 427          * derived from QHsm.
+ 428          *
+ 429          * @param[in] me     pointer (see @ref oop)
+ 430          * @param[in] parent pointer to the state-handler function
+ 431          *
+ 432          * @returns
+ 433          * the child of a given @c parent state, which is an ancestor of the current
+ 434          * active state. For the corner case when the currently active state is the
+ 435          * given @c parent state, function returns the @c parent state.
+ 436          *
+ 437          * @note
+ 438          * This function is designed to be called during state transitions, so it
+ 439          * does not necessarily start in a stable state configuration. However, the
+ 440          * function establishes stable state configuration upon exit.
+ 441          *
+ 442          * @sa
+ 443          * QHsm_childState()
+ 444          */
+ 445          QStateHandler QHsm_childState_(QHsm * const me,
+ 446                                         QStateHandler const parent)
+ 447          {
+ 448   1          QStateHandler child = me->state; /* start with the current state */
+ 449   1          bool isFound = false; /* start with the child not found */
+ 450   1          QState r;
+ 451   1      
+ 452   1          /* establish stable state configuration */
+ 453   1          me->temp = me->state;
+ 454   1          do {
+ 455   2              /* is this the parent of the current child? */
+ 456   2              if (me->temp == parent) {
+ 457   3                  isFound = true; /* child is found */
+ 458   3                  r = (QState)Q_RET_IGNORED; /* break out of the loop */
+ 459   3              }
+ 460   2              else {
+ 461   3                  child = me->temp;
+ 462   3                  Q_SIG(me) = (QSignal)QEP_EMPTY_SIG_;
+ 463   3                  r = (*me->temp)(me); /* find the superstate */
+ 464   3              }
+ 465   2          } while (r != (QState)Q_RET_IGNORED); /* QHsm_top() state not reached */
+ 466   1          me->temp = me->state; /* establish stable state configuration */
+ 467   1      
+ 468   1          /** @post the child must be found */
+ 469   1          Q_ENSURE_ID(810, isFound != false);
+*** WARNING C275 IN LINE 469 OF ..\qpn\src\qfn\qepn.c: expression with possibly no effect
+ 470   1      
+ 471   1          return child; /* return the child */
+ 472   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2334    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V9.54   QEPN                                                                  02/25/2018 00:49:26 PAGE 9   
+
+   DATA SIZE        =     17      84
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  9 WARNING(S),  0 ERROR(S)

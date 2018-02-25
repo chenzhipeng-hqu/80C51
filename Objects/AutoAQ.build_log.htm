@@ -1,0 +1,42 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: ¦ÌVision V5.14.2
+Copyright (C) 2015 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: chen zhipeng, admin, LIC=----
+ 
+Tool Versions:
+Toolchain:       PK51 Prof. Develpers Kit  Version: 9.54
+Toolchain Path:  C:\Keil_v5\C51\BIN
+C Compiler:      C51.exe V9.54
+Assembler:       A51.exe V8.02c
+Linker/Locator:  BL51.exe V6.22
+Library Manager: LIB51.exe V4.30.1.0
+Hex Converter:   OH51.exe V2.7.0.0
+CPU DLL:         S8051.DLL V3.100.0.0
+Dialog DLL:      DP51.DLL V2.62.0.1 
+<h2>Project:</h2>
+\\172.17.84.237\chenzhipeng3472_disk2\c51\80C51\AutoAQ.uvproj
+Project File Date:  02/25/2018
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling blinky.c...
+blinky.c(126): error C212: indirect call: parameters do not fit within registers
+compiling bsp.c...
+bsp.c(62): warning C280: 'file': unreferenced local variable
+bsp.c(62): warning C280: 'line': unreferenced local variable
+bsp.c(114): warning C230: 'AO_Blinky': uses undefined struct/union tag 'BlinkyTag'
+compiling qkn.c...
+..\qpn\src\qkn\qkn.c(48): error C320: "Source file included in a project NOT based on the QK-nano kernel"
+..\qpn\src\qkn\qkn.c(52): error C129: missing ';' before 'QK_attr_'
+compiling qfn.c...
+..\qpn\src\qfn\qfn.c(311): warning C275: expression with possibly no effect
+..\qpn\src\qfn\qfn.c(341): warning C275: expression with possibly no effect
+..\qpn\src\qfn\qfn.c(410): error C212: indirect call: parameters do not fit within registers
+Target not created.
+</pre>
+</body>
+</html>

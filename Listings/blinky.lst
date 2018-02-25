@@ -1,0 +1,154 @@
+C51 COMPILER V9.54   BLINKY                                                                02/25/2018 00:50:13 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE BLINKY
+OBJECT MODULE PLACED IN .\Objects\blinky.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE blinky.c OPTIMIZE(8,SPEED) BROWSE INCDIR(Y:\c51\qpn\include;Y:\c51\C51_l
+                    -ib) DEBUG OBJECTEXTEND PRINT(.\Listings\blinky.lst) TABS(2) OBJECT(.\Objects\blinky.obj)
+
+line level    source
+
+   1          /*****************************************************************************
+   2          * Product: Simple Blinky example
+   3          * Last updated for version 5.4.0
+   4          * Last updated on  2015-05-18
+   5          *
+   6          *                    Q u a n t u m     L e a P s
+   7          *                    ---------------------------
+   8          *                    innovating embedded systems
+   9          *
+  10          * Copyright (C) Quantum Leaps, www.state-machine.com.
+  11          *
+  12          * This program is open source software: you can redistribute it and/or
+  13          * modify it under the terms of the GNU General Public License as published
+  14          * by the Free Software Foundation, either version 3 of the License, or
+  15          * (at your option) any later version.
+  16          *
+  17          * Alternatively, this program may be distributed and modified under the
+  18          * terms of Quantum Leaps commercial licenses, which expressly supersede
+  19          * the GNU General Public License and are specifically designed for
+  20          * licensees interested in retaining the proprietary status of their code.
+  21          *
+  22          * This program is distributed in the hope that it will be useful,
+  23          * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  24          * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  25          * GNU General Public License for more details.
+  26          *
+  27          * You should have received a copy of the GNU General Public License
+  28          * along with this program. If not, see <http://www.gnu.org/licenses/>.
+  29          *
+  30          * Contact information:
+  31          * Web:   www.state-machine.com
+  32          * Email: info@state-machine.com
+  33          *****************************************************************************/
+  34          #include <stdio.h>
+  35          #include "qpn.h"
+  36          #include "blinky.h"
+  37          
+  38          //Q_DEFINE_THIS_FILE
+  39          
+  40          /*..........................................................................*/
+  41          typedef struct BlinkyTag {  /* the Blinky active object */
+  42              QActive super;          /* inherit QActive */
+  43          } Blinky;
+  44          
+  45          /* hierarchical state machine ... */
+  46          static QState Blinky_initial(Blinky * const me);
+  47          static QState Blinky_off    (Blinky * const me);
+  48          static QState Blinky_on     (Blinky * const me);
+  49          static QState Blinky_ctrl   (Blinky * const me);
+  50          
+  51          /* Global objects ----------------------------------------------------------*/
+  52          Blinky AO_Blinky;   /* the single instance of the Blinky AO */
+  53          
+  54          /*..........................................................................*/
+C51 COMPILER V9.54   BLINKY                                                                02/25/2018 00:50:13 PAGE 2   
+
+  55          void Blinky_ctor(void) {
+  56   1          Blinky * const me = &AO_Blinky;
+  57   1          QActive_ctor(&me->super, Q_STATE_CAST(&Blinky_initial));
+  58   1      }
+  59          
+  60          /* HSM definition ----------------------------------------------------------*/
+  61          QState Blinky_initial(Blinky * const me) {
+  62   1      //    QActive_armX((QActive *)me, 0U,
+  63   1      //                 BSP_TICKS_PER_SEC/2U, BSP_TICKS_PER_SEC/2U);
+  64   1          return Q_TRAN(&Blinky_ctrl);
+  65   1      }
+  66          /*..........................................................................*/
+  67          QState Blinky_off(Blinky * const me) {
+  68   1          QState status;
+  69   1          switch (Q_SIG(me)) {
+  70   2              case Q_ENTRY_SIG: {
+  71   3                  status = Q_HANDLED();
+  72   3                  break;
+  73   3              }
+  74   2              case Q_TIMEOUT_SIG: {
+  75   3                  status = Q_TRAN(&Blinky_on);
+  76   3                  break;
+  77   3              }
+  78   2              default: {
+  79   3                  status = Q_SUPER(&QHsm_top);
+  80   3                  break;
+  81   3              }
+  82   2          }
+  83   1          return status;
+  84   1      }
+  85          /*..........................................................................*/
+  86          QState Blinky_on(Blinky * const me) {
+  87   1          QState status;
+  88   1          switch (Q_SIG(me)) {
+  89   2              case Q_ENTRY_SIG: {
+  90   3                  status = Q_HANDLED();
+  91   3                  break;
+  92   3              }
+  93   2              case Q_TIMEOUT_SIG: {
+  94   3                  status = Q_TRAN(&Blinky_off);
+  95   3                  break;
+  96   3              }
+  97   2              default: {
+  98   3                  status = Q_SUPER(&QHsm_top);
+  99   3                  break;
+ 100   3              }
+ 101   2          }
+ 102   1          return status;
+ 103   1      }
+ 104          
+ 105          QState Blinky_ctrl(Blinky * const me) 
+ 106          {
+ 107   1          QState status;
+ 108   1          switch (Q_SIG(me)) {
+ 109   2              case Q_ENTRY_SIG: {
+ 110   3                  status = Q_HANDLED();
+ 111   3                  break;
+ 112   3              }
+ 113   2              case BLINKY_ON_SIG: {
+ 114   3                  status = Q_HANDLED();;
+ 115   3                  break;
+ 116   3              }
+C51 COMPILER V9.54   BLINKY                                                                02/25/2018 00:50:13 PAGE 3   
+
+ 117   2              case BLINKY_OFF_SIG: {
+ 118   3                  status = Q_HANDLED();;
+ 119   3                  break;
+ 120   3              }
+ 121   2              case BLINKY_TOGGLE_SIG: {
+ 122   3                  status = Q_HANDLED();;
+ 123   3                  break;
+ 124   3              }
+ 125   2              case Q_TIMEOUT_SIG: {
+ 126   3                  QACTIVE_POST((QActive *)&AO_Blinky, BLINKY_TOGGLE_SIG, NULL); /* signal and parameter */
+*** ERROR C212 IN LINE 126 OF blinky.c: indirect call: parameters do not fit within registers
+ 127   3                  status = Q_HANDLED();;
+ 128   3                  break;
+ 129   3              }
+ 130   2              default: {
+ 131   3                  status = Q_SUPER(&QHsm_top);
+ 132   3                  break;
+ 133   3              }
+ 134   2          }
+ 135   1          return status;
+ 136   1      
+ 137   1      }
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  1 ERROR(S)

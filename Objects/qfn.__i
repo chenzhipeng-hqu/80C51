@@ -1,0 +1,1 @@
+"..\qpn\src\qfn\qfn.c" OPTIMIZE (8,SPEED) BROWSE INCDIR(Y:\c51\qpn\include;Y:\c51\C51_lib) DEBUG OBJECTEXTEND PRINT(.\Listings\qfn.lst) TABS (2) OBJECT(.\Objects\qfn.obj)
