@@ -388,36 +388,6 @@
         <Group>
           <GroupName>C51_lib</GroupName>
         </Group>
-        <Group>
-          <GroupName>qpn</GroupName>
-          <Files>
-            <File>
-              <FileName>qkn.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\qpn\src\qkn\qkn.c</FilePath>
-            </File>
-            <File>
-              <FileName>qvn.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\qpn\src\qvn\qvn.c</FilePath>
-            </File>
-            <File>
-              <FileName>qepn.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\qpn\src\qfn\qepn.c</FilePath>
-            </File>
-            <File>
-              <FileName>qfn.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\qpn\src\qfn\qfn.c</FilePath>
-            </File>
-            <File>
-              <FileName>qstamp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\qpn\include\qstamp.c</FilePath>
-            </File>
-          </Files>
-        </Group>
       </Groups>
     </Target>
   </Targets>
