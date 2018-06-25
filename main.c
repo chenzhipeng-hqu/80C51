@@ -12,9 +12,16 @@
 #include "common.h"
 #include "Timer.h"
 #include "PCA.h"
+#include "task.h"
+#include "led.h"
 
 #include "LEDTask.h"
 #include "LCD1602Task.h"
+
+TaskTypeDef xdata Task_Array[] = {
+	{SUSPEND, 	0, 		0,		NULL,				Idle_Task},
+	{SUSPEND, 	500, 	500, 	LED_Init,		LCD1602_Task}
+};
 
 int main(void)  //reentrant //重入函数修饰符
 {	
@@ -31,9 +38,11 @@ int main(void)  //reentrant //重入函数修饰符
 	
 	while(1)
 	{
-		LED_Task();
-	
-		LCD1602_Task();
+//		LED_Task();
+//	
+//		LCD1602_Task();
+		
+		TaskScheduler();
 	}
 	
 	return 0;
