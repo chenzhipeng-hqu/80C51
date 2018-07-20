@@ -433,6 +433,11 @@
               <FileType>1</FileType>
               <FilePath>.\Task\LEDTask.c</FilePath>
             </File>
+            <File>
+              <FileName>InfraRedTask.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Task\InfraRedTask.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

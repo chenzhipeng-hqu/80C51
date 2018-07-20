@@ -10,18 +10,17 @@
 */
 
 #include "common.h"
-#include "Timer.h"
-#include "PCA.h"
 #include "task.h"
-#include "led.h"
 
 #include "LEDTask.h"
 #include "LCD1602Task.h"
+#include "InfraRedTask.h"
 
 TaskTypeDef xdata Task_Array[] = {
 	{SUSPEND, 	0, 		0,		NULL,				Idle_Task},
 	{SUSPEND, 	500, 	500, 	LEDTask_Init,		LED_Task},
 	{SUSPEND, 	50, 	50, 	LCD1602Task_Init,		LCD1602_Task},
+	{SUSPEND, 	50, 	50, 	InfraRedTask_Init,	InfraRed_Task},
 };
 
 int main(void)  //reentrant //÷ÿ»Î∫Ø ˝–ﬁ Œ∑˚
