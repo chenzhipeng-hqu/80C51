@@ -20,23 +20,23 @@
 
 TaskTypeDef xdata Task_Array[] = {
 	{SUSPEND, 	0, 		0,		NULL,				Idle_Task},
-	{SUSPEND, 	500, 	500, 	LED_Init,		LED_Task},
-	{SUSPEND, 	50, 	50, 	NULL,		LCD1602_Task},
+	{SUSPEND, 	500, 	500, 	LEDTask_Init,		LED_Task},
+	{SUSPEND, 	50, 	50, 	LCD1602Task_Init,		LCD1602_Task},
 };
 
 int main(void)  //reentrant //重入函数修饰符
 {	
-	volatile u32 *pulSysTicks;							 //用于记录系统时钟地址
+	//volatile u32 *pulSysTicks;							 //用于记录系统时钟地址
 	
-	pulSysTicks = TM0_Init();
+	//pulSysTicks = TM0_Init();
 	
-	PCA_Init();
+	//PCA_Init();
 	
-	EA = 1;
 	
-	TaskInitial(sizeof(Task_Array)/sizeof(Task_Array[0]));
-	LEDTask_Init(pulSysTicks);
-	LCD1602Task_Init(pulSysTicks);
+	
+	TaskInitial(sizeof(Task_Array)/sizeof(Task_Array[0]), NULL);
+	//LEDTask_Init(pulSysTicks);
+	//LCD1602Task_Init(pulSysTicks);
 	
 	while(1)
 	{
