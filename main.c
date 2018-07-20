@@ -33,7 +33,7 @@ int main(void)  //reentrant //ÖØÈëº¯ÊýÐÞÊÎ·û
 	
 	
 	
-	TaskInitial(sizeof(Task_Array)/sizeof(Task_Array[0]), NULL);
+	TaskInitial(sizeof(Task_Array)/sizeof(Task_Array[0]));
 	//LEDTask_Init(pulSysTicks);
 	//LCD1602Task_Init(pulSysTicks);
 	
