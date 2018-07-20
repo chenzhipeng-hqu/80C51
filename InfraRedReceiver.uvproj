@@ -405,6 +405,11 @@
               <FilePath>..\C51_lib\PCA.c</FilePath>
             </File>
             <File>
+              <FileName>task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\C51_lib\task.c</FilePath>
+            </File>
+            <File>
               <FileName>InfraRed.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\C51_lib\InfraRed.c</FilePath>
@@ -415,9 +420,29 @@
               <FilePath>..\C51_lib\InfraRed_NEC.c</FilePath>
             </File>
             <File>
-              <FileName>task.c</FileName>
+              <FileName>InfraRed_SAMSUNG.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\C51_lib\task.c</FilePath>
+              <FilePath>..\C51_lib\InfraRed_SAMSUNG.c</FilePath>
+            </File>
+            <File>
+              <FileName>InfraRed_SONY.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\C51_lib\InfraRed_SONY.c</FilePath>
+            </File>
+            <File>
+              <FileName>InfraRed_RCA.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\C51_lib\InfraRed_RCA.c</FilePath>
+            </File>
+            <File>
+              <FileName>InfraRed_RC5.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\C51_lib\InfraRed_RC5.c</FilePath>
+            </File>
+            <File>
+              <FileName>InfraRed_PANASONIC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\C51_lib\InfraRed_PANASONIC.c</FilePath>
             </File>
           </Files>
         </Group>
