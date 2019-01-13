@@ -32,10 +32,11 @@
 * mailto:info@state-machine.com
 *****************************************************************************/
 #include <stdio.h>
-//#include "time.h"
+#include "Timer.h"
 
 #include "qpn.h"     /* QP-nano API */
 #include "bsp.h"     /* Board Support Package */
+#include "usart.h"     /* Board Support Package */
 #include "blinky.h"  /* Application interface */
 
 /* Local-scope objects -----------------------------------------------------*/
@@ -48,15 +49,41 @@ QActiveCB const Q_ROM QF_active[] = {
 };
 
 /*..........................................................................*/
-int main(void)
+int main(void) 
 {
-    Blinky_ctor(); /* instantiate all Blinky AO */
+//	volatile u32 *pulSysTicks;							 //用于记录系统时钟地址
+#if 1 
+	Blinky_ctor(); /* instantiate all Blinky AO */
 
     QF_init(Q_DIM(QF_active)); /* initialize the QF-nano framework */
 
     BSP_init();      /* initialize the Board Support Package */
 
+    TM0_Init();
+	
+	EA = 1;
+	Usart_Init();
+	SendString("Usart is OK!");
     QF_run(); /* transfer control to QF-nano */
 	
-    return 0;
+//	pulSysTicks = TM0_Init();
+	
+//	EA = 1;
+#else 
+	P1 = 0x55;
+	
+    TM0_Init();
+	
+	EA = 1;
+	Usart_Init();
+	SendString("Usart is OK!");
+#endif	
+	while(1)
+	{
+		
+		Delay_Ms(100);
+		NORB(P1, 7);
+		SendString("Usart is OK!\r\n");
+	}
+//    return 0;
 }

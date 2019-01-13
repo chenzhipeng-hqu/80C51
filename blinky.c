@@ -33,9 +33,13 @@
 *****************************************************************************/
 #include <stdio.h>
 #include "qpn.h"
+#include "bsp.h"
+#include "usart.h"
 #include "blinky.h"
 
-//Q_DEFINE_THIS_FILE
+Q_DEFINE_THIS_FILE
+
+#define 		BSP_TICKS_PER_SEC			SYS_CLOCK  //hz
 
 /*..........................................................................*/
 typedef struct BlinkyTag {  /* the Blinky active object */
@@ -43,13 +47,12 @@ typedef struct BlinkyTag {  /* the Blinky active object */
 } Blinky;
 
 /* hierarchical state machine ... */
-static QState Blinky_initial(Blinky * const me);
-static QState Blinky_off    (Blinky * const me);
-static QState Blinky_on     (Blinky * const me);
-static QState Blinky_ctrl   (Blinky * const me);
+static QState Blinky_initial(Blinky * const me) reentrant;
+static QState Blinky_off    (Blinky * const me) reentrant;
+static QState Blinky_on     (Blinky * const me) reentrant;
 
 /* Global objects ----------------------------------------------------------*/
-Blinky AO_Blinky;   /* the single instance of the Blinky AO */
+struct BlinkyTag AO_Blinky;   /* the single instance of the Blinky AO */
 
 /*..........................................................................*/
 void Blinky_ctor(void) {
@@ -58,21 +61,35 @@ void Blinky_ctor(void) {
 }
 
 /* HSM definition ----------------------------------------------------------*/
-QState Blinky_initial(Blinky * const me) {
-//    QActive_armX((QActive *)me, 0U,
-//                 BSP_TICKS_PER_SEC/2U, BSP_TICKS_PER_SEC/2U);
-    return Q_TRAN(&Blinky_ctrl);
+static QState Blinky_initial(Blinky * const me) reentrant{
+    QActive_armX((QActive *)me, 0U, BSP_TICKS_PER_SEC/2U, BSP_TICKS_PER_SEC/2U);
+	return Q_TRAN(&Blinky_off);
+	//(Q_HSM_UPCAST(me))->temp = Q_STATE_CAST(&Blinky_off);
+	//return  ((QState)Q_RET_TRAN);
 }
 /*..........................................................................*/
-QState Blinky_off(Blinky * const me) {
+static QState Blinky_off(Blinky * const me) reentrant{
     QState status;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            status = Q_HANDLED();
+					BSP_ledOff();
+					
+					SendString("BSP_ledOff!");
+					status = Q_HANDLED();
             break;
         }
+        case Q_INIT_SIG: {
+					//QACTIVE_POST((QActive *)&AO_Blinky, BLINKY_TOGGLE_SIG, 0); /* signal and parameter */
+					status = Q_HANDLED();
+          break;
+        }
         case Q_TIMEOUT_SIG: {
-            status = Q_TRAN(&Blinky_on);
+						
+						status = Q_TRAN(&Blinky_on);
+            break;
+        }
+        case BLINKY_TOGGLE_SIG: {						
+						status = Q_TRAN(&Blinky_on);
             break;
         }
         default: {
@@ -83,15 +100,17 @@ QState Blinky_off(Blinky * const me) {
     return status;
 }
 /*..........................................................................*/
-QState Blinky_on(Blinky * const me) {
+static QState Blinky_on(Blinky * const me) reentrant{
     QState status;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
+					BSP_ledOn();
             status = Q_HANDLED();
             break;
         }
         case Q_TIMEOUT_SIG: {
-            status = Q_TRAN(&Blinky_off);
+						
+						status = Q_TRAN(&Blinky_off);
             break;
         }
         default: {
@@ -100,38 +119,4 @@ QState Blinky_on(Blinky * const me) {
         }
     }
     return status;
-}
-
-QState Blinky_ctrl(Blinky * const me) 
-{
-    QState status;
-    switch (Q_SIG(me)) {
-        case Q_ENTRY_SIG: {
-            status = Q_HANDLED();
-            break;
-        }
-        case BLINKY_ON_SIG: {
-            status = Q_HANDLED();;
-            break;
-        }
-        case BLINKY_OFF_SIG: {
-            status = Q_HANDLED();;
-            break;
-        }
-        case BLINKY_TOGGLE_SIG: {
-            status = Q_HANDLED();;
-            break;
-        }
-        case Q_TIMEOUT_SIG: {
-            QACTIVE_POST((QActive *)&AO_Blinky, BLINKY_TOGGLE_SIG, NULL); /* signal and parameter */
-            status = Q_HANDLED();;
-            break;
-        }
-        default: {
-            status = Q_SUPER(&QHsm_top);
-            break;
-        }
-    }
-    return status;
-
 }

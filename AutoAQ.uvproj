@@ -48,7 +48,7 @@
           <OutputName>AutoAQ</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
-          <CreateHexFile>0</CreateHexFile>
+          <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
           <BrowseInformation>1</BrowseInformation>
           <ListingPath>.\Listings\</ListingPath>
@@ -144,7 +144,7 @@
             <RestoreMemoryDisplay>1</RestoreMemoryDisplay>
             <RestoreFunctions>0</RestoreFunctions>
             <RestoreToolbox>1</RestoreToolbox>
-            <RestoreTracepoints>1</RestoreTracepoints>
+            <RestoreTracepoints>0</RestoreTracepoints>
             <RestoreSysVw>1</RestoreSysVw>
           </Target>
           <RunDebugAfterBuild>0</RunDebugAfterBuild>
@@ -185,7 +185,7 @@
         </Utilities>
         <Target51>
           <Target51Misc>
-            <MemoryModel>0</MemoryModel>
+            <MemoryModel>2</MemoryModel>
             <RTOS>0</RTOS>
             <RomSize>2</RomSize>
             <DataHold>0</DataHold>
@@ -230,7 +230,7 @@
               <RCB>
                 <Type>0</Type>
                 <StartAddress>0x0</StartAddress>
-                <Size>0x10000</Size>
+                <Size>0xffff</Size>
               </RCB>
               <RXB>
                 <Type>0</Type>
@@ -301,7 +301,7 @@
             <uAregs>0</uAregs>
             <UseInterruptVector>1</UseInterruptVector>
             <Fuzzy>3</Fuzzy>
-            <Optimize>8</Optimize>
+            <Optimize>1</Optimize>
             <WarningLevel>2</WarningLevel>
             <SizeSpeed>1</SizeSpeed>
             <ObjectExtend>1</ObjectExtend>
@@ -311,7 +311,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>Y:\c51\qpn\include;Y:\c51\C51_lib</IncludePath>
+              <IncludePath>..\qpn\include;..\C51_lib</IncludePath>
             </VariousControls>
           </C51>
           <Ax51>
@@ -369,9 +369,9 @@
               <FilePath>.\STARTUP.A51</FilePath>
             </File>
             <File>
-              <FileName>blinky.c</FileName>
+              <FileName>main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\blinky.c</FilePath>
+              <FilePath>.\main.c</FilePath>
             </File>
             <File>
               <FileName>bsp.c</FileName>
@@ -379,23 +379,35 @@
               <FilePath>.\bsp.c</FilePath>
             </File>
             <File>
-              <FileName>main.c</FileName>
+              <FileName>blinky.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\main.c</FilePath>
+              <FilePath>.\blinky.c</FilePath>
             </File>
           </Files>
         </Group>
         <Group>
           <GroupName>C51_lib</GroupName>
+          <Files>
+            <File>
+              <FileName>usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\C51_lib\usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>Timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\C51_lib\Timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>LED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\C51_lib\LED.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>qpn</GroupName>
           <Files>
-            <File>
-              <FileName>qkn.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\qpn\src\qkn\qkn.c</FilePath>
-            </File>
             <File>
               <FileName>qvn.c</FileName>
               <FileType>1</FileType>
@@ -410,11 +422,6 @@
               <FileName>qfn.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\qpn\src\qfn\qfn.c</FilePath>
-            </File>
-            <File>
-              <FileName>qstamp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\qpn\include\qstamp.c</FilePath>
             </File>
           </Files>
         </Group>

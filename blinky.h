@@ -45,8 +45,9 @@ enum BlinkySignals {
     MAX_SIG               /* the last signal */
 };
 
-void Blinky_ctor(void);
+void Blinky_ctor(void) ;
 
+struct BlinkyTag;
 extern struct BlinkyTag AO_Blinky;
 
 #endif /* blinky_h */

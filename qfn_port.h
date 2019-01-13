@@ -40,12 +40,8 @@
 #define qfn_port_h
 
 /* interrupt disabling policy for task level, see NOTE1 */
-#define QF_INT_DISABLE() 
-#define QF_INT_ENABLE() 
-
-#define Q_PARAM_SIZE            4
-#define QF_TIMEEVT_CTR_SIZE     2
-#define QF_TIMEEVT_PERIODIC
+#define QF_INT_DISABLE() 			EA = 0;
+#define QF_INT_ENABLE() 			EA = 1;
 
 
 /* interrupt disabling policy for interrupt level */
@@ -53,13 +49,13 @@
 
 //#include <stdint.h>     /* Exact-width types. WG14/N843 C99 Standard */
 //#include <stdbool.h>    /* Boolean type.      WG14/N843 C99 Standard */
-
-typedef unsigned char uint8_t;
-typedef unsigned long uint32_t;
+#include "Common.h"
+//typedef unsigned char uint8_t;
+//typedef unsigned long uint32_t;
 typedef unsigned char uint_fast8_t;
 typedef char int_fast8_t;
-typedef unsigned int uint16_t;
-typedef unsigned char bool;
+//typedef unsigned int uint16_t;
+//typedef unsigned char bool;
 #define	false	0
 #define	true	1
 

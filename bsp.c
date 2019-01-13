@@ -35,12 +35,14 @@
 #include "bsp.h"
 #include "blinky.h"
 #include "Timer.h"
+#include "usart.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h> /* for memcpy() and memset() */
 
 Q_DEFINE_THIS_FILE
+
 
 /* Local-scope objects -----------------------------------------------------*/
 //static struct termios l_tsav; [> structure with saved terminal attributes <]
@@ -54,21 +56,34 @@ void BSP_init() {
 /*..........................................................................*/
 void BSP_ledOff() {
     /*printf("OFF\n");*/
+	//P1 = 0xff;
+	SETB(P1, 7);
 }
 /*..........................................................................*/
 void BSP_ledOn() {
     /*printf("ON\n");*/
+	CLRB(P1, 7);
 }
 /*..........................................................................*/
-void Q_onAssert(char_t const Q_ROM * const file, int_t line) {
+void Q_onAssert(char_t const Q_ROM * const file, int_t line){
+		(void *)file;
+		(void *)line;
 //    fprintf(stderr, "\nAssertion failed in %s, line %d\n", file, line);
 //    exit(-1);
+	P10 = 0;
+	CLRB(P1, 7);
+	SendString("Q_onAssert.\r\n");
+	while(1);
 }
 
 /*--------------------------------------------------------------------------*/
 void QF_onStartup(void) {
     //QF_setTickRate(BSP_TICKS_PER_SEC); 
-    TM0_Init();
+	
+//	CLRB(P1, 1);
+//	SETB(P1, 1);
+//	CLRB(P1, 0);
+	//while(1);
 }
 /*..........................................................................*/
 void QF_onCleanup(void) {
@@ -97,10 +112,11 @@ void QF_onCleanup(void) {
 
 void QF_stop(void) 
 {
+//	P16 = 0;
     //l_isRunning = false;    [> cause exit from the event loop <]
 }
 
-void QV_onIdle(void)  /* CATION: called with interrupts DISABLED, NOTE01 */
+void QV_onIdle(void)   /* CATION: called with interrupts DISABLED, NOTE01 */
 {
 #ifdef NDEBUG
     /* Put the CPU and peripherals to the low-power mode.
