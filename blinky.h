@@ -46,8 +46,11 @@ enum BlinkySignals {
 };
 
 void Blinky_ctor(void) ;
-
 struct BlinkyTag;
 extern struct BlinkyTag AO_Blinky;
+
+extern void LCD1602_ctor(void) ;
+struct LCD1602Tag;
+extern struct LCD1602Tag AO_LCD1602;
 
 #endif /* blinky_h */

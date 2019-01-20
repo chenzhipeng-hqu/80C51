@@ -52,6 +52,12 @@ void BSP_init() {
     /*printf("Simple Blinky example\nQP-nano version: %s\n"*/
            /*"Press ESC to quit...\n",*/
            /*QP_VERSION_STR);*/
+	
+  TM0_Init();
+	EA = 1;
+	Usart_Init();
+	SendString("Usart is OK!");
+	
 }
 /*..........................................................................*/
 void BSP_ledOff() {
@@ -66,24 +72,21 @@ void BSP_ledOn() {
 }
 /*..........................................................................*/
 void Q_onAssert(char_t const Q_ROM * const file, int_t line){
-		(void *)file;
-		(void *)line;
+//		(void *)file;
+//		(void *)line;
 //    fprintf(stderr, "\nAssertion failed in %s, line %d\n", file, line);
 //    exit(-1);
+	unsigned char send_buff[50] = {0};
 	P10 = 0;
 	CLRB(P1, 7);
-	SendString("Q_onAssert.\r\n");
+	sprintf(send_buff, "ERR: %s %d\r\n", file, line);
+	SendString(send_buff);
 	while(1);
 }
 
 /*--------------------------------------------------------------------------*/
 void QF_onStartup(void) {
     //QF_setTickRate(BSP_TICKS_PER_SEC); 
-	
-//	CLRB(P1, 1);
-//	SETB(P1, 1);
-//	CLRB(P1, 0);
-	//while(1);
 }
 /*..........................................................................*/
 void QF_onCleanup(void) {

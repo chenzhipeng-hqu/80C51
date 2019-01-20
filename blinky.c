@@ -47,7 +47,7 @@ typedef struct BlinkyTag {  /* the Blinky active object */
 } Blinky;
 
 /* hierarchical state machine ... */
-static QState Blinky_initial(Blinky * const me) reentrant;
+static QState Blinky_initial(Blinky * const me) ;
 static QState Blinky_off    (Blinky * const me) reentrant;
 static QState Blinky_on     (Blinky * const me) reentrant;
 
@@ -61,11 +61,9 @@ void Blinky_ctor(void) {
 }
 
 /* HSM definition ----------------------------------------------------------*/
-static QState Blinky_initial(Blinky * const me) reentrant{
+static QState Blinky_initial(Blinky * const me) {
     QActive_armX((QActive *)me, 0U, BSP_TICKS_PER_SEC/2U, BSP_TICKS_PER_SEC/2U);
 	return Q_TRAN(&Blinky_off);
-	//(Q_HSM_UPCAST(me))->temp = Q_STATE_CAST(&Blinky_off);
-	//return  ((QState)Q_RET_TRAN);
 }
 /*..........................................................................*/
 static QState Blinky_off(Blinky * const me) reentrant{
@@ -74,7 +72,7 @@ static QState Blinky_off(Blinky * const me) reentrant{
         case Q_ENTRY_SIG: {
 					BSP_ledOff();
 					
-					SendString("BSP_ledOff!");
+					//SendString("BSP_ledOff! \r\n");
 					status = Q_HANDLED();
             break;
         }
@@ -105,6 +103,7 @@ static QState Blinky_on(Blinky * const me) reentrant{
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
 					BSP_ledOn();
+					//SendString("BSP_ledOn! \r\n");
             status = Q_HANDLED();
             break;
         }

@@ -41,49 +41,27 @@
 
 /* Local-scope objects -----------------------------------------------------*/
 static QEvt l_blinkyQSto[10]; /* Event queue storage for Blinky */
+static QEvt l_AO_LCD1602QSto[10];
 
 /* QF_active[] array defines all active object control blocks --------------*/
 QActiveCB const Q_ROM QF_active[] = {
     { (QActive *)0,           (QEvt *)0,        0U                      },
-    { (QActive *)&AO_Blinky,  l_blinkyQSto,     Q_DIM(l_blinkyQSto)     }
+    { (QActive *)&AO_Blinky,  l_blinkyQSto,     Q_DIM(l_blinkyQSto)     },
+    { (QActive *)&AO_LCD1602,  l_AO_LCD1602QSto,     Q_DIM(l_AO_LCD1602QSto)     }
 };
 
 /*..........................................................................*/
 int main(void) 
 {
 //	volatile u32 *pulSysTicks;							 //用于记录系统时钟地址
-#if 1 
-	Blinky_ctor(); /* instantiate all Blinky AO */
 
+	Blinky_ctor(); /* instantiate all Blinky AO */
+	LCD1602_ctor();
+	
     QF_init(Q_DIM(QF_active)); /* initialize the QF-nano framework */
 
     BSP_init();      /* initialize the Board Support Package */
 
-    TM0_Init();
-	
-	EA = 1;
-	Usart_Init();
-	SendString("Usart is OK!");
-    QF_run(); /* transfer control to QF-nano */
-	
-//	pulSysTicks = TM0_Init();
-	
-//	EA = 1;
-#else 
-	P1 = 0x55;
-	
-    TM0_Init();
-	
-	EA = 1;
-	Usart_Init();
-	SendString("Usart is OK!");
-#endif	
-	while(1)
-	{
-		
-		Delay_Ms(100);
-		NORB(P1, 7);
-		SendString("Usart is OK!\r\n");
-	}
-//    return 0;
+
+  return QF_run(); /* transfer control to QF-nano */
 }

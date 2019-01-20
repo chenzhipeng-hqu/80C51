@@ -35,7 +35,7 @@
 #define qpn_conf_h
 
 #define QF_TIMEEVT_USAGE
-#define QF_MAX_ACTIVE						1
+#define QF_MAX_ACTIVE						2
 
 #define Q_PARAM_SIZE            4
 #define QF_MAX_TICK_RATE        1
